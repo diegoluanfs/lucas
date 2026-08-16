@@ -217,3 +217,27 @@ def calcular_angulo_wls(pontos, lado):
             return (180 - ang_deg) if slope < 0 else ang_deg
     except Exception:
         return 0.0
+
+
+def calcular_angulo_quadratico(pontos, lado):
+    """Calculate the contact angle from a quadratic tangent fit."""
+    if len(pontos) < 15:
+        return 0.0
+
+    try:
+        x = pontos[:, 0].astype(float)
+        y = pontos[:, 1].astype(float)
+        coef = np.polyfit(x, y, 2)
+        polynomial = np.poly1d(coef)
+        derivative = np.polyder(polynomial)
+
+        x_contact = np.min(x) if lado == "esq" else np.max(x)
+        slope = derivative(x_contact)
+        angle_deg = math.degrees(math.atan(abs(slope)))
+
+        if lado == "esq":
+            return (180 - angle_deg) if slope > 0 else angle_deg
+        return (180 - angle_deg) if slope < 0 else angle_deg
+    except Exception as error:
+        print(f"Angle calculation error: {error}")
+        return 0.0
