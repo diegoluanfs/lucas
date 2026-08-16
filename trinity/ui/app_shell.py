@@ -1,7 +1,14 @@
 import customtkinter as ctk
+from pathlib import Path
 from tkinter import ttk
 
 from trinity.ui.tooltip import Tooltip
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:  # pragma: no cover - Pillow is optional for the logo fallback
+    Image = None
+    ImageTk = None
 
 
 def build_main_ui(app):
@@ -12,8 +19,44 @@ def build_main_ui(app):
     app.sidebar = ctk.CTkFrame(app.main_layout, width=300, corner_radius=12, fg_color="#1d1d1d")
     app.sidebar.pack(side="left", fill="y", padx=(0, 10))
 
+    app.logo_container = ctk.CTkFrame(app.sidebar, fg_color="#161616", corner_radius=12)
+    app.logo_container.pack(fill="x", padx=10, pady=(10, 8))
+
+    logo_path = Path(__file__).resolve().parents[2] / "vids" / "test.png"
+    if logo_path.exists() and Image is not None and ImageTk is not None:
+        try:
+            image = Image.open(logo_path).resize((220, 90), Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS)
+            app.logo_image = ImageTk.PhotoImage(image)
+            app.logo_label = ctk.CTkLabel(
+                app.logo_container,
+                image=app.logo_image,
+                text="",
+                width=220,
+                height=90,
+            )
+        except Exception:
+            app.logo_label = ctk.CTkLabel(
+                app.logo_container,
+                text="TRINITY",
+                font=ctk.CTkFont(size=22, weight="bold"),
+                text_color="#dfeafc",
+                anchor="center",
+                height=60,
+            )
+    else:
+        app.logo_label = ctk.CTkLabel(
+            app.logo_container,
+            text="TRINITY",
+            font=ctk.CTkFont(size=22, weight="bold"),
+            text_color="#dfeafc",
+            anchor="center",
+            height=60,
+        )
+
+    app.logo_label.pack(fill="x", padx=10, pady=10)
+
     app.menu_container = ctk.CTkFrame(app.sidebar, fg_color="transparent")
-    app.menu_container.pack(fill="both", expand=True, padx=10, pady=10)
+    app.menu_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
     app.content = ctk.CTkFrame(app.main_layout, fg_color="transparent")
     app.content.pack(side="left", fill="both", expand=True)
